@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:webview_flutter/webview_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../providers/cart_provider.dart';
 import '../services/payment_service.dart';
@@ -15,7 +14,6 @@ class CheckoutScreen extends StatefulWidget {
 }
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
-  PaymentMethod? _selectedPaymentMethod;
   bool _isProcessing = false;
 
   @override
@@ -91,28 +89,49 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                // Payment methods
-                Text(
-                  'Select Payment Method',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const SizedBox(height: 16),
-                _buildPaymentOption(
-                  PaymentMethod.applePay,
-                  'Apple Pay',
-                  Icons.apple,
-                ),
-                const SizedBox(height: 12),
-                _buildPaymentOption(
-                  PaymentMethod.googlePay,
-                  'Google Pay',
-                  Icons.account_balance_wallet,
-                ),
-                const SizedBox(height: 12),
-                _buildPaymentOption(
-                  PaymentMethod.liqpay,
-                  'LiqPay',
-                  Icons.credit_card,
+                // Payment info
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Payment Method',
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.credit_card,
+                              size: 32,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'LiqPay',
+                                    style:
+                                        Theme.of(context).textTheme.titleMedium,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Cards, Apple Pay, Google Pay',
+                                    style:
+                                        Theme.of(context).textTheme.bodySmall,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -134,7 +153,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               child: SizedBox(
                 width: double.infinity,
                 child: FilledButton(
-                  onPressed: _selectedPaymentMethod == null || _isProcessing
+                  onPressed: _isProcessing
                       ? null
                       : () => _processPayment(context),
                   style: FilledButton.styleFrom(
@@ -162,67 +181,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  Widget _buildPaymentOption(
-    PaymentMethod method,
-    String title,
-    IconData icon,
-  ) {
-    final isSelected = _selectedPaymentMethod == method;
-
-    return InkWell(
-      onTap: () {
-        setState(() {
-          _selectedPaymentMethod = method;
-        });
-      },
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          border: Border.all(
-            color: isSelected
-                ? Theme.of(context).colorScheme.primary
-                : Colors.grey[300]!,
-            width: isSelected ? 2 : 1,
-          ),
-          borderRadius: BorderRadius.circular(12),
-          color: isSelected
-              ? Theme.of(context).colorScheme.primaryContainer
-              : null,
-        ),
-        child: Row(
-          children: [
-            Icon(
-              icon,
-              size: 32,
-              color: isSelected
-                  ? Theme.of(context).colorScheme.primary
-                  : Colors.grey[700],
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Text(
-                title,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight:
-                          isSelected ? FontWeight.bold : FontWeight.normal,
-                    ),
-              ),
-            ),
-            if (isSelected)
-              Icon(
-                Icons.check_circle,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Future<void> _processPayment(BuildContext context) async {
-    if (_selectedPaymentMethod == null) return;
-
     setState(() {
       _isProcessing = true;
     });
@@ -230,59 +189,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     try {
       final cart = context.read<CartProvider>();
       final paymentService = context.read<PaymentService>();
-      final posterApi = context.read<PosterApiService>();
 
       final orderId = 'order_${DateTime.now().millisecondsSinceEpoch}';
 
-      // Process payment based on selected method
-      Map<String, dynamic>? paymentResult;
-
-      switch (_selectedPaymentMethod!) {
-        case PaymentMethod.applePay:
-          // Check if Apple Pay is available
-          final isAvailable = await paymentService.isApplePayAvailable();
-          if (!isAvailable) {
-            throw Exception('Apple Pay is not available on this device');
-          }
-          paymentResult = await paymentService.processApplePay(
-            amount: cart.totalAmount,
-            orderId: orderId,
-          );
-          break;
-
-        case PaymentMethod.googlePay:
-          // Check if Google Pay is available
-          final isAvailable = await paymentService.isGooglePayAvailable();
-          if (!isAvailable) {
-            throw Exception('Google Pay is not available on this device');
-          }
-          paymentResult = await paymentService.processGooglePay(
-            amount: cart.totalAmount,
-            orderId: orderId,
-          );
-          break;
-
-        case PaymentMethod.liqpay:
-          // Open LiqPay in WebView
-          await _openLiqPayWebView(context, orderId);
-          return;
-      }
-
-      // If payment successful, create order in Poster
-      if (paymentResult != null && paymentResult['success'] == true) {
-        await posterApi.createOrder(
-          products: cart.toOrderFormat(),
-          totalAmount: cart.totalAmount,
-          comment: 'Payment via ${_selectedPaymentMethod!.name}',
-        );
-
-        // Clear cart and show success
-        cart.clear();
-
-        if (context.mounted) {
-          _showSuccessDialog(context);
-        }
-      }
+      // Open LiqPay payment page
+      await _openLiqPayWebView(context, orderId);
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -292,12 +203,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           ),
         );
       }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isProcessing = false;
-        });
-      }
+      setState(() {
+        _isProcessing = false;
+      });
     }
   }
 
@@ -324,6 +232,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       if (context.mounted) {
         showDialog(
           context: context,
+          barrierDismissible: false,
           builder: (context) => AlertDialog(
             title: const Text('Payment Processing'),
             content: const Text(
@@ -364,6 +273,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       ),
                     );
                   }
+
+                  setState(() {
+                    _isProcessing = false;
+                  });
                 },
                 child: const Text('Payment Complete'),
               ),
@@ -371,6 +284,18 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           ),
         );
       }
+    } else {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Could not open payment page'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      setState(() {
+        _isProcessing = false;
+      });
     }
   }
 

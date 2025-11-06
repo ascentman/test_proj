@@ -24,14 +24,13 @@ dependencies:
   cached_network_image: ^3.3.0
   flutter_svg: ^2.0.9
 
-  # Payment Integrations
-  pay: ^2.0.0  # Apple Pay & Google Pay
+  # Payment Integration
   webview_flutter: ^4.4.2  # For LiqPay
+  url_launcher: ^6.2.2
 
   # Utilities
-  intl: ^0.18.1
+  intl: ^0.20.2
   shared_preferences: ^2.2.2
-  url_launcher: ^6.2.2
   crypto: ^3.0.3
 
 dev_dependencies:

@@ -1,16 +1,17 @@
 # D.Cafe - Flutter Mobile & Web App
 
-A modern Flutter application for D.Cafe that integrates with the Poster POS system API to display menu items and process payments through Apple Pay, Google Pay, and LiqPay.
+A modern Flutter application for D.Cafe that integrates with the Poster POS system API to display menu items and process payments through LiqPay.
 
 ## Features
 
 - **Multi-platform Support**: iOS, Android, and Web
 - **Menu Display**: Browse cafe menu organized by categories
 - **Shopping Cart**: Add items, adjust quantities, and review orders
-- **Multiple Payment Methods**:
-  - Apple Pay (iOS)
-  - Google Pay (Android)
-  - LiqPay (Web & Mobile)
+- **Payment Integration**: LiqPay handles all payment methods including:
+  - Bank cards (Visa, Mastercard)
+  - Apple Pay
+  - Google Pay
+  - Online banking
 - **Real-time Sync**: Menu data synced with Poster POS system
 - **Order Management**: Orders automatically sent to Poster system
 
@@ -24,8 +25,6 @@ A modern Flutter application for D.Cafe that integrates with the Poster POS syst
 - Dart SDK (3.0.0 or higher)
 - Poster Account with API access
 - LiqPay merchant account
-- Apple Developer Account (for Apple Pay)
-- Google Pay API access (for Google Pay)
 
 ## Installation
 
@@ -80,27 +79,6 @@ posterApiService.setAccessToken('YOUR_ACCESS_TOKEN_HERE');
 - `incomingOrders.createIncomingOrder` - Create new order
 
 ## Payment Setup
-
-### Apple Pay (iOS)
-
-1. Enroll in Apple Developer Program
-2. Configure Apple Pay in your Apple Developer account
-3. Create a Merchant ID
-4. Update `lib/services/payment_service.dart` with your Merchant ID:
-   ```dart
-   "merchantIdentifier": "merchant.com.dcafe.app"
-   ```
-5. Add Apple Pay capability in Xcode
-
-### Google Pay (Android)
-
-1. Register for Google Pay API
-2. Get your Gateway Merchant ID
-3. Update `lib/services/payment_service.dart`:
-   ```dart
-   "gatewayMerchantId": "YOUR_GATEWAY_MERCHANT_ID"
-   ```
-4. Test in TEST environment first
 
 ### LiqPay
 
@@ -185,10 +163,10 @@ dcafe_app/
 
 - **provider**: State management
 - **dio**: HTTP client for API calls
-- **pay**: Apple Pay & Google Pay integration
-- **webview_flutter**: LiqPay payment webview
+- **url_launcher**: Opens LiqPay payment page in browser
 - **cached_network_image**: Image caching
 - **json_annotation**: JSON serialization
+- **crypto**: For LiqPay signature generation
 
 ## Configuration Notes
 
