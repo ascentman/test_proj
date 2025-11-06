@@ -1,0 +1,56 @@
+name: dcafe_app
+description: D.Cafe - Menu and payment app using Poster API
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State Management
+  provider: ^6.1.1
+
+  # HTTP & API
+  http: ^1.1.0
+  dio: ^5.4.0
+
+  # JSON Serialization
+  json_annotation: ^4.8.1
+
+  # UI Components
+  cached_network_image: ^3.3.0
+  flutter_svg: ^2.0.9
+
+  # Payment Integration
+  webview_flutter: ^4.4.2  # For LiqPay
+  url_launcher: ^6.2.2
+
+  # Utilities
+  intl: ^0.20.2
+  shared_preferences: ^2.2.2
+  crypto: ^3.0.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+  build_runner: ^2.4.7
+  json_serializable: ^6.7.1
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/
+    - assets/fonts/
+
+  # Fonts (optional - add your custom fonts here)
+  # fonts:
+  #   - family: CustomFont
+  #     fonts:
+  #       - asset: assets/fonts/CustomFont-Regular.ttf
+  #       - asset: assets/fonts/CustomFont-Bold.ttf
+  #         weight: 700
